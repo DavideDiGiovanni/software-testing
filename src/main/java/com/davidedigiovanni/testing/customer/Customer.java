@@ -1,4 +1,4 @@
-package com.amigoscode.testing.customer;
+package com.davidedigiovanni.testing.customer;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

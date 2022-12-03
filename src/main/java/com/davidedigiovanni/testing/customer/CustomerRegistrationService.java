@@ -1,4 +1,4 @@
-package com.amigoscode.testing.customer;
+package com.davidedigiovanni.testing.customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

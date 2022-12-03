@@ -1,4 +1,4 @@
-package com.amigoscode.testing.customer;
+package com.davidedigiovanni.testing.customer;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
