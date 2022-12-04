@@ -73,9 +73,7 @@ class CustomerRepositoryTest {
         // Then
         assertThat(customerOptional)
                 .isPresent()
-                .hasValueSatisfying(c -> {
-                    assertThat(c).isEqualToComparingFieldByField(customer);
-                });
+                .hasValueSatisfying(c -> assertThat(c).isEqualToComparingFieldByField(customer));
     }
 
     @Test
