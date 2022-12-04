@@ -48,7 +48,6 @@ class CustomerRepositoryTest {
     void itShouldNotSaveCustomerWhenNameIsNull() {
         // Given
         UUID id = UUID.randomUUID();
-        String name = "Dave";
         String phoneNumber = "0123456789";
         Customer customer = new Customer(id, null, phoneNumber);
 
@@ -57,5 +56,38 @@ class CustomerRepositoryTest {
         assertThatThrownBy(() -> underTest.save(customer))
                 .isInstanceOf(DataIntegrityViolationException.class)
                 .hasMessageContaining("not-null property references a null or transient value : com.davidedigiovanni.testing.customer.Customer.name");
+    }
+
+    @Test
+    void itShouldSelectCustomerByPhoneNumber() {
+        // Given
+        UUID id = UUID.randomUUID();
+        String name = "Abel";
+        String phoneNumber = "0000";
+        Customer customer = new Customer(id, name, phoneNumber);
+        underTest.save(customer);
+
+        // When
+        Optional<Customer> customerOptional = underTest.selectCustomerByPhoneNumber(phoneNumber);
+
+        // Then
+        assertThat(customerOptional)
+                .isPresent()
+                .hasValueSatisfying(c -> {
+                    assertThat(c).isEqualToComparingFieldByField(customer);
+                });
+    }
+
+    @Test
+    void itNotShouldSelectCustomerByPhoneNumberWhenPhoneNumberDoesNotExist() {
+        // Given
+        String phoneNumber = "0000";
+
+        // When
+        Optional<Customer> customerOptional = underTest.selectCustomerByPhoneNumber(phoneNumber);
+
+        // Then
+        assertThat(customerOptional)
+                .isNotPresent();
     }
 }
