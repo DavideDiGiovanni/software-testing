@@ -1,10 +1,12 @@
 package com.davidedigiovanni.testing.payment;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Entity
 public class Payment {
 
     @Id
@@ -33,6 +35,9 @@ public class Payment {
         this.currency = currency;
         this.source = source;
         this.description = description;
+    }
+
+    public Payment() {
     }
 
     @Override
