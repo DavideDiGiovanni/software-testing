@@ -13,9 +13,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 
 class PaymentServiceTest {
 
@@ -69,5 +72,66 @@ class PaymentServiceTest {
         Payment paymentArgumentCaptorValue = paymentArgumentCaptor.getValue();
         assertThat(paymentArgumentCaptorValue).isEqualToIgnoringNullFields(paymentRequest.getPayment());
         assertThat(paymentArgumentCaptorValue.getCustomerId()).isEqualTo(customerId);
+    }
+
+    @Test
+    void itShouldThrowWhenCardIsNotCharge() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+        given(customerRepository.findById(customerId)).willReturn(Optional.of(mock(Customer.class)));
+
+        PaymentRequest paymentRequest = new PaymentRequest(
+                new Payment(
+                        null,
+                        null,
+                        new BigDecimal("100.00"),
+                        Currency.USD,
+                        "card123xx",
+                        "Donation"
+                )
+        );
+
+        given(cardPaymentCharger.cardCharge(
+                paymentRequest.getPayment().getSource(),
+                paymentRequest.getPayment().getAmount(),
+                paymentRequest.getPayment().getCurrency(),
+                paymentRequest.getPayment().getDescription()
+        )).willReturn(new CardPaymentCharge(false));
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, paymentRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(String.format("Card not debited for customer %s", customerId));
+
+        then(paymentRepository).should(never()).save(any(Payment.class));
+    }
+
+    @Test
+    void itShouldThrownWhenCurrencyNotSupported() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+        given(customerRepository.findById(customerId)).willReturn(Optional.of(mock(Customer.class)));
+
+        PaymentRequest paymentRequest = new PaymentRequest(
+                new Payment(
+                        null,
+                        null,
+                        new BigDecimal("100.00"),
+                        Currency.EUR,
+                        "card123xx",
+                        "Donation"
+                )
+        );
+
+        // When
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, paymentRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(String.format("Currency [%s] not supported", paymentRequest.getPayment().getCurrency()));
+
+        then(cardPaymentCharger).shouldHaveNoInteractions();
+
+        // Then
+        then(paymentRepository).should(never()).save(any(Payment.class));
     }
 }
