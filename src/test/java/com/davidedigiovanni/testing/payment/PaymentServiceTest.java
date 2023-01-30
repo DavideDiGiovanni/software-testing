@@ -129,9 +129,24 @@ class PaymentServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining(String.format("Currency [%s] not supported", paymentRequest.getPayment().getCurrency()));
 
+        // Then
         then(cardPaymentCharger).shouldHaveNoInteractions();
+        then(paymentRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    void itShouldThrownWhenCustomerNotFound() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+        given(customerRepository.findById(customerId)).willReturn(Optional.empty());
+
+        // When
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, new PaymentRequest(new Payment())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(String.format("Customer with id [%s] not found", customerId));
 
         // Then
-        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(cardPaymentCharger).shouldHaveNoInteractions();
+        then(paymentRepository).shouldHaveNoInteractions();
     }
 }
